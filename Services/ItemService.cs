@@ -1,47 +1,63 @@
-﻿using e_commerce_project.Models;
+﻿using Microsoft.EntityFrameworkCore;
+using e_commerce_project.Data;
+using e_commerce_project.Models;
+
 namespace e_commerce_project.Services
 {
     public class ItemService : IItemService
     {
-       private readonly List<Items> _items = new List<Items>();
-        private int _nextId = 1;
+        private readonly AppDbContext _context;
+
+        public ItemService(AppDbContext context)
+        {
+            _context = context;
+        }
+
         public List<Items> GetAll()
         {
-            return _items;
+            return _context.Items.ToList();
         }
+
         public Items GetById(int id)
         {
-            return _items.FirstOrDefault(i => i.Id == id); // LINQ Method
+            return _context.Items.FirstOrDefault(i => i.Id == id);
         }
-        public Items Add(Items newitem)
+
+        public Items Add(Items newItem)
         {
-          newitem.Id = _nextId;
-            _nextId++;
-                _items.Add(newitem);
-                return newitem;
+            _context.Items.Add(newItem);
+            _context.SaveChanges();
+            return newItem;
         }
-        public bool Update(int id, Items updateitem)
+
+        public bool Update(int id, Items updatedItem)
         {
-            var existingItem = _items.FirstOrDefault(i => i.Id == id);
-            if (existingItem == null) { return false; }
-            existingItem.Name = updateitem.Name;
-            existingItem.Price = updateitem.Price;
-            existingItem.Stock = updateitem.Stock;
-            existingItem.SupplierId = updateitem.SupplierId;
-          
+            var existingItem = _context.Items.FirstOrDefault(i => i.Id == id);
+            if (existingItem == null)
+            {
+                return false;
+            }
+
+            existingItem.Name = updatedItem.Name;
+            existingItem.Price = updatedItem.Price;
+            existingItem.Stock = updatedItem.Stock;
+            existingItem.SupplierId = updatedItem.SupplierId;
+
+            _context.SaveChanges();
             return true;
         }
+
         public bool Delete(int id)
         {
-            var existingItem = _items.FirstOrDefault(i => i.Id == id);
-            if (existingItem == null) { return false; }
+            var existingItem = _context.Items.FirstOrDefault(i => i.Id == id);
+            if (existingItem == null)
+            {
+                return false;
+            }
 
-            _items.Remove(existingItem);
+            _context.Items.Remove(existingItem);
+            _context.SaveChanges();
             return true;
         }
-
-
-
-
     }
 }

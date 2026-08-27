@@ -1,6 +1,7 @@
 ﻿namespace e_commerce_project.Controllers
 {
     using e_commerce_project.Models;
+    using e_commerce_project.Models.DTO;
     using e_commerce_project.Services;
     using Microsoft.AspNetCore.Mvc;    // microsoft virutual controller
     [ApiController] //
@@ -18,7 +19,15 @@
         public IActionResult GetAll()   // IActionResult is a return type that represents the result of an action method in an ASP.NET Core controller. It allows you to return different types of responses, such as JSON, HTML, or status codes (Ok,BadRequest,NotFound)
         {
             var item = _itemService.GetAll();
-                return Ok(item);
+            var response = item.Select(i => new ItemDto
+            {
+                Id = i.Id,
+                Name = i.Name,
+                Price = i.Price,
+                Stock = i.Stock
+            }).ToList();
+
+            return Ok(response);
         }
 
         [HttpGet("{id}")]
@@ -29,22 +38,42 @@
             {
                 return NotFound ($"Item with id {id} not found.");
             }
+            var response = new ItemDto
+            {
+                Id = item.Id,
+                Name = item.Name,
+                Price = item.Price,
+                Stock = item.Stock
+            };
             return Ok(item);
         }
 
         [HttpPost]
-        public IActionResult Post([FromBody] Items newitem)
+        public IActionResult Post([FromBody] CreateItemDto newitemDTO)
         {
-            var createdItem= _itemService.Add(newitem);
-          return Ok($"Item {newitem.Name} added successfully with price {newitem.Price} .");
+            var newItem = new Items
+            {
+                Name = newitemDTO.Name,
+                Price = newitemDTO.Price,
+                Stock = newitemDTO.Stock,
+                SupplierId = newitemDTO.SupplierId
+            };
+            var createdItem = _itemService.Add(newItem);
+            return Ok(createdItem);
         }
 
         [HttpPut("{id}")]
-        public IActionResult Put(int id , [FromBody] Items updateitem)
+        public IActionResult Put(int id , [FromBody] UpdateItemDto updateitem)
         {
-            var success=_itemService.Update(id,updateitem);
-          
-            if(!success)
+           var updatedItem = new Items
+            {
+                Name = updateitem.Name,
+                Price = updateitem.Price,
+                Stock = updateitem.Stock,
+                SupplierId = updateitem.SupplierId
+            };
+            var success = _itemService.Update(id, updatedItem);
+            if (!success)
             {
                 return NotFound($"Item with id {id} not found ");
             }
